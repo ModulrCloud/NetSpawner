@@ -1,0 +1,4 @@
+{
+    "corePath":"/full/path/to/core/binary",
+    "netMode":"TESTNET_2V"
+}
