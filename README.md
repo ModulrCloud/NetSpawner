@@ -78,3 +78,10 @@ For testing leader rotation, required proofs behavior, and ensuring serializatio
 
 ##### Five validators (TESTNET_5V)
 Same goals as the two-validator setup, but with a larger validator set to exercise more complex conditions and higher message/approval volume.
+
+
+# Usage with PM2 (process manager)
+
+![alt text](files/images/pm2.png)
+
+TODO
