@@ -21,7 +21,7 @@ Usage:
 
 Commands:
   resume   Resume network from the same point
-  reset    Reset and start the network from init
+  reset    Reset and start the network from init (progress drop)
   help     Show this help
 
 Flags:
