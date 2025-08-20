@@ -83,5 +83,3 @@ Same goals as the two-validator setup, but with a larger validator set to exerci
 # Usage with PM2 (process manager)
 
 ![alt text](files/images/pm2.png)
-
-TODO
