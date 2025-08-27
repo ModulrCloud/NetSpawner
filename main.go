@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -12,6 +11,11 @@ var (
 	showHelp = flag.Bool("help", false, "Show help and exit")
 	showH    = flag.Bool("h", false, "Show help (shorthand)")
 )
+
+type Config struct {
+	CorePath string `json:"corePath"` // absolute to the Go node binary
+	NetMode  string `json:"netMode"`  // e.g., TESTNET_V5, TESTNET_V21
+}
 
 func usage() {
 	fmt.Fprintf(os.Stderr, `NetSpawner — local blockchain network launcher
@@ -78,8 +82,4 @@ func resumeNetwork() error {
 func resetNetwork() error {
 	fmt.Println("Resetting network and starting from scratch...")
 	return nil
-}
-
-func notImplemented(feature string) error {
-	return errors.New(feature + " not implemented")
 }
