@@ -39,38 +39,38 @@ Examples:
 }
 
 func main() {
+
 	flag.Usage = usage
+
 	flag.Parse()
 
 	if *showHelp || *showH {
 		usage()
 		return
 	}
-
 	if flag.NArg() == 0 {
 		usage()
 		os.Exit(2)
 	}
 
-	cmd := strings.ToLower(flag.Arg(0))
-	if cmd == "help" {
+	switch strings.ToLower(flag.Arg(0)) {
+
+	case "help":
 		usage()
-		return
-	}
-
-	var err error
-	switch cmd {
 	case "resume":
-		err = resumeNetwork()
+		if err := resumeNetwork(); err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
 	case "reset":
-		err = resetNetwork()
+		if err := resetNetwork(); err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
 	default:
-		err = fmt.Errorf("unknown command: %q", cmd)
-	}
+		fmt.Fprintf(os.Stderr, "unknown command: %q\n", flag.Arg(0))
+		os.Exit(2)
 
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		os.Exit(1)
 	}
 }
 
