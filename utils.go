@@ -1,11 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"sync"
 )
 
 // Function to check if the dir is exists
@@ -45,12 +49,12 @@ func createDirsForNodes(cfg Config, baseDir string) []string {
 
 	switch cfg.NetMode {
 
-	case "TESTNET_V5":
+	case "TESTNET_5V":
 		dirs = nil
 		for i := 1; i <= 5; i++ {
 			dirs = append(dirs, filepath.Join(baseDir, "V"+strconv.Itoa(i)))
 		}
-	case "TESTNET_V21":
+	case "TESTNET_21V":
 		dirs = nil
 		for i := 1; i <= 21; i++ {
 			dirs = append(dirs, filepath.Join(baseDir, "V"+strconv.Itoa(i)))
@@ -58,4 +62,67 @@ func createDirsForNodes(cfg Config, baseDir string) []string {
 	}
 
 	return dirs
+}
+
+func pipeWithPrefix(r io.Reader, prefix string, dst io.Writer, wg *sync.WaitGroup) {
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		sc := bufio.NewScanner(r)
+		buf := make([]byte, 0, 1024*64)
+		sc.Buffer(buf, 1024*1024)
+		for sc.Scan() {
+			fmt.Fprintf(dst, "[%s]: %s\n", prefix, sc.Text())
+		}
+	}()
+}
+
+type ioWaitGroup struct {
+	wg     sync.WaitGroup
+	Prefix string
+}
+
+func (i *ioWaitGroup) Attach(stdout, stderr io.Reader) {
+	pipeWithPrefix(stdout, i.Prefix, os.Stdout, &i.wg)
+	pipeWithPrefix(stderr, i.Prefix, os.Stderr, &i.wg)
+}
+func (i *ioWaitGroup) Wait() { i.wg.Wait() }
+
+func runCoreProcess(pathToChainDir, corePath string) (*exec.Cmd, error) {
+
+	// Invoke the Go node binary directly
+	cmd := exec.Command(corePath)
+
+	// Inherit environment and provide per-node overrides
+	cmd.Env = append(os.Environ(), "CHAINDATA_PATH="+pathToChainDir)
+
+	stdout, err := cmd.StdoutPipe()
+
+	if err != nil {
+		return nil, err
+	}
+
+	stderr, err := cmd.StderrPipe()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, err
+	}
+
+	var wg ioWaitGroup
+
+	wg.Prefix = pathToChainDir
+	wg.Attach(stdout, stderr)
+
+	go func() {
+		_ = cmd.Wait()
+		wg.Wait()
+		fmt.Fprintf(os.Stdout, "[%s]: process exited\n", pathToChainDir)
+	}()
+
+	return cmd, nil
 }
