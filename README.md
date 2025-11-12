@@ -15,9 +15,9 @@ Use cases:
 Requirements: Go 1.21+
 
 ```bash
-git clone https://github.com/ModulrCloud/NetSpawner.git
+git clone https://github.com/modulrcloud/net-spawner.git
 
-cd NetSpawner
+cd net-spawner
 
 go build -o netspawner main.go
 ```
